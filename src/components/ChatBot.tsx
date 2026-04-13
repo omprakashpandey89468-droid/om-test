@@ -43,20 +43,25 @@ export const ChatBot: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const model = "gemini-3-flash-preview";
-      const response = await ai.models.generateContent({
-        model,
+      const response = await ai.models.generateContent({ 
+        model: "gemini-3-flash-preview",
         contents: userMessage,
         config: {
           systemInstruction: "You are a helpful and encouraging mathematics tutor for students. Your goal is to explain mathematical concepts clearly, provide step-by-step solutions when asked, and encourage students to think critically. Use markdown for clear formatting, especially for equations and lists. Keep your tone friendly and supportive. Respond in Hinglish (a mix of Hindi and English) to make it more relatable for Indian students. Use common Hindi words written in English script (e.g., 'samajh aaya?', 'kaise solve karein?', 'bilkul sahi'). Ensure mathematical terms remain in English for clarity. CRITICAL: Always use Indian Rupees (₹) for currency-related problems, never use Dollars ($). Use the Indian numbering system (e.g., Lakhs, Crores) when discussing large numbers.",
-        },
+        }
       });
-
+      
       const botMessage = response.text || "I'm sorry, I couldn't process that request.";
       setMessages(prev => [...prev, { role: 'bot', content: botMessage }]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("ChatBot Error:", error);
-      setMessages(prev => [...prev, { role: 'bot', content: "Oops! Something went wrong. Please try again later." }]);
+      let errorMessage = "Oops! Something went wrong. Please try again later.";
+      if (error?.message?.includes('API_KEY_INVALID')) {
+        errorMessage = "API Key invalid hai. Please check your settings.";
+      } else if (error?.message?.includes('model not found')) {
+        errorMessage = "Model nahi mila. Please try again.";
+      }
+      setMessages(prev => [...prev, { role: 'bot', content: errorMessage }]);
     } finally {
       setIsLoading(false);
     }
